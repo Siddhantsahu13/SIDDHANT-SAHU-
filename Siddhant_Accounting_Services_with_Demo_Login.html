@@ -1323,6 +1323,101 @@
         // Activity होने पर 20-minute session आगे बढ़ेगा।
         ['click','keydown','input'].forEach(evt => document.addEventListener(evt, () => { if (getSession()) touchSession(); }, {passive:true}));
         window.addEventListener('load', () => { loadPublicContent(); restoreSession(); });
+        function openComputerCertificateService() {
+    const modal = document.getElementById('vendorServiceModal');
+    const content = document.getElementById('vendorServiceModalContent');
+
+    content.innerHTML = `
+        <div class="panel-section" style="display:block!important;border-color:#0d6efd;background:#f4f8ff;">
+            <h3 style="color:#0d6efd;border-color:#0d6efd;">
+                💻 Computer Certificate / Basic Computer Diploma
+            </h3>
+
+            <form class="service-form" onsubmit="submitComputerCertificate(event)">
+                <label>विद्यार्थी का पूरा नाम</label>
+                <input type="text" id="computerName" required>
+
+                <label>पिता का नाम</label>
+                <input type="text" id="computerFather" required>
+
+                <label>जन्म तिथि</label>
+                <input type="date" id="computerDob" required>
+
+                <label>मोबाइल नंबर</label>
+                <input type="tel" id="computerMobile"
+                       pattern="[0-9]{10}" required>
+
+                <label>कोर्स चुनें</label>
+                <select id="computerCourse" required>
+                    <option value="">-- कोर्स चुनें --</option>
+                    <option>Basic Computer Certificate</option>
+                    <option>Basic Computer Diploma</option>
+                </select>
+
+                <label>पूरा पता</label>
+                <textarea id="computerAddress" rows="3" required></textarea>
+
+                <label>डॉक्यूमेंट अपलोड करें</label>
+                <input type="file" id="computerDoc"
+                       accept="image/*,.pdf" required>
+
+                <button type="submit"
+                        class="submit-service-btn"
+                        style="background:#0d6efd;">
+                    💻 Request Submit करें
+                </button>
+            </form>
+
+            <div id="computerCertificateMsg"
+                 style="margin-top:10px;text-align:center;font-weight:bold;">
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'block';
+}
+
+async function submitComputerCertificate(event) {
+    event.preventDefault();
+
+    const msg = document.getElementById('computerCertificateMsg');
+
+    if (!currentLoggedInShop) {
+        msg.style.color = 'red';
+        msg.textContent = 'पहले Vendor Login करें!';
+        return;
+    }
+
+    msg.style.color = '#555';
+    msg.textContent = '⏳ Request submit हो रही है...';
+
+    try {
+        const result = await apiRequest({
+            action: 'submitComputerCertificate',
+            vendorId: currentLoggedInShop,
+            serviceType: document.getElementById('computerCourse').value,
+            applicantName: document.getElementById('computerName').value.trim(),
+            fatherName: document.getElementById('computerFather').value.trim(),
+            dob: document.getElementById('computerDob').value,
+            mobile: document.getElementById('computerMobile').value.trim(),
+            address: document.getElementById('computerAddress').value.trim(),
+            documentName: document.getElementById('computerDoc').files[0].name
+        });
+
+        msg.style.color = result.success ? 'green' : 'red';
+        msg.textContent = result.message ||
+            (result.success
+                ? '✅ Request सफलतापूर्वक submit हो गई।'
+                : 'Request submit नहीं हो पाई।');
+
+        if (result.success) {
+            event.target.reset();
+        }
+    } catch (error) {
+        msg.style.color = 'red';
+        msg.textContent = '❌ Request submit करते समय समस्या हुई।';
+    }
+}
     </script>
 
 <script>
